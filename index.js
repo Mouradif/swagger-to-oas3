@@ -28,15 +28,18 @@ async function saveDefinition(name, data) {
 		fs.mkdirSync('./Models');
 		console.log("Created dir ./Models");
 	}
-	const fileName = ('./Models/' + name.toLowerCase() + '.yaml').replace(/\s+/g, '_');
+	const entityName = name.toLowerCase().replace(/\s+/g, '_');
+	const fileName = './Models/' + entityName + '.yaml';
 	if (fs.existsSync(fileName)) {
 		throw `File ${fileName} already exists`; 
 	}
-	fs.writeFileSync(fileName, YAML.safeDump({
+	let object = {
 		components: {
-			schemas: data
+			schemas: {}
 		}
-	}), 'utf8');
+	};
+	object.components.schemas[entityName] = data;
+	fs.writeFileSync(fileName, YAML.safeDump(object), 'utf8');
 }
 
 async function saveEntrypoint(name, data) {
