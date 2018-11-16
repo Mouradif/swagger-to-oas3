@@ -4,8 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "re": "rm -rf Doc/ && node index ~/Downloads/oce.yml && node bundle Doc"
+    "test": "node bundle Doc",
+    "clear": "rm -rf Doc/ documentation.yaml",
+    "parse": "node index oce.json",
+    "re": "npm run clear && npm run parse && npm run test"
   },
   "author": "",
   "license": "ISC",

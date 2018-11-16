@@ -14,6 +14,19 @@ const intKeys = [
     'maxLength',
     'minLength'
 ];
+
+const schemaKeys = [
+    'type',
+    'enum',
+    'default',
+    'items',
+    'format'
+];
+
+Array.prototype.intersect = function(arr) {
+    return this.filter(value => -1 !== arr.indexOf(value));
+};
+
 process.argv.shift();
 process.argv.shift();
 const fileToParse = process.argv.shift();
@@ -171,6 +184,18 @@ function fixRoutes(data, name) {
             }
         }
     }
+    if (data.hasOwnProperty("parameters")) {
+        console.log(`Route ${name} had parameters`);
+        let parameters = [];
+        if (Array.isArray(data.parameters)) {
+            for (let i = 0; i < data.parameters.length; i++) {
+                parameters.push(fixParameters(data.parameters[i]));
+            }
+        } else {
+            parameters.push(fixParameters(data.parameters));
+        }
+        data.parameters = parameters;
+    }
     return data;
 }
 
@@ -227,20 +252,15 @@ function fixNullables(data, trace = []) {
 }
 
 function fixParameters(data) {
-    if (data.hasOwnProperty("type") || data.hasOwnProperty("enum") || data.hasOwnProperty("items")) {
-        data.schema = {};
-        if (data.hasOwnProperty("type")) {
-            data.schema.type = data.type;
-            delete data.type;
-        }
-        if (data.hasOwnProperty("items")) {
-            data.schema.items = data.items;
-            delete data.items;
-        }
-        if (data.hasOwnProperty("enum")) {
-            data.schema.enum = data.enum;
-            delete data.enum;
-        }
+    const keys = Object.keys(data).intersect(schemaKeys);
+    if (keys.length == 0)
+        return data;
+
+    data.schema = {};
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        data.schema[key] = data[key];
+        delete data[key];
     }
     return data;
 }

@@ -36,6 +36,7 @@ async function run(doc) {
     }
     try {
         let api = await SwaggerParser.validate(doc);
+        fs.writeFileSync("documentation.yaml", YAML.safeDump(doc), "utf8");
         console.log("Valid !");
     } catch (e) {
         console.log(e.message);
