@@ -3,6 +3,7 @@
 const fs = require('fs');
 const YAML = require('js-yaml');
 const { die } = require('./src/utils');
+const readline = require('readline-sync');
 const httpVerbs = [
     'get',
     'post',
@@ -235,18 +236,25 @@ function fixNullables(data, trace = []) {
             console.log(trace);
             throw `key ${i} type was not a string and not array either`;
         }
-        if (data.properties[i].type.length !== 2) {
-            console.log(trace);
-            throw `key ${i} has more than 2 types`;
-        }
         const nullIndex = data.properties[i].type.indexOf('null');
-        if (nullIndex === -1) {
-            console.log(trace);
-            throw `key ${i} has more than 1 non-null type`;
+        let nullable = false;
+        if (nullIndex !== -1) {
+            data.properties[i].type.splice(nullIndex, 1);
+            nullable = true;
         }
-        const typeIndex = (nullIndex) ? 0 : 1;
-        data.properties[i].type = data.properties[i].type[typeIndex];
-        data.properties[i].nullable = true;
+        if (data.properties[i].type.length === 1) {
+            data.properties[i].type = data.properties[i].type[0];
+            if (nullable)
+                data.properties[i].nullable = true;
+            continue;
+        }
+        console.log(`key ${i} has more than 1 non-null types`);
+        const typeIndex = readline.keyInSelect(data.properties[i].type, 'Which one do you want to keep ?', { cancel: "other (manually type)" });
+        data.properties[i].type = (typeIndex === -1) ?
+            readline.question(`key ${i} type : `) :
+            data.properties[i].type[typeIndex];
+        if (nullable)
+            data.properties[i].nullable = true;
     }
     return data;
 }
